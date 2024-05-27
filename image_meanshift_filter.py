@@ -27,7 +27,7 @@ class ImageMeanshiftFilter:
                 "image": ("IMAGE", ),
                 "sp": ("INT", {"default": 20}),
                 "sr": ("INT", {"default": 20}),
-                "use_cuda": ("BOOL", {"default": False})
+                "use_cuda": ("BOOLEAN", {"default": False}),
             },
         }
 
