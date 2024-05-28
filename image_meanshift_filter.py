@@ -61,21 +61,29 @@ class ImageMeanshiftFilter:
 
         return output_image_pil
 
-    def meanshift_denoise_pil_cpu(self, input_image_pil, sp=80, sr=60):
+    def meanshift_denoise_pil_cpu(self, input_image_pil, sp, sr):
         # 将 PIL 图像转换为 OpenCV 图像格式
         image = cv2.cvtColor(np.array(input_image_pil), cv2.COLOR_RGB2BGR)
+
         # 检测是否有透明度通道
         if image.shape[2] == 4:
             # 分离透明度通道
+            alpha_channel = image[:, :, 3].copy()
             image = image[:, :, :3]
-        # 将图像转换为 RGBA
-        image_rgba = cv2.cvtColor(image, cv2.COLOR_BGR2BGRA)
+        else:
+            alpha_channel = None
 
         # 应用 MeanShift 滤波
-        filtered_image_rgba = cv2.pyrMeanShiftFiltering(image_rgba, sp, sr)
+        filtered_image = cv2.pyrMeanShiftFiltering(image, sp, sr)
+
+        # 如果原图有透明度通道，将其添加回处理后的图像
+        if alpha_channel is not None:
+            filtered_image_with_alpha = cv2.cvtColor(filtered_image, cv2.COLOR_BGR2BGRA)
+            filtered_image_with_alpha[:, :, 3] = alpha_channel
+            filtered_image = filtered_image_with_alpha
 
         # 将结果图像转换回 RGB
-        filtered_image_rgb = cv2.cvtColor(filtered_image_rgba, cv2.COLOR_BGRA2RGB)
+        filtered_image_rgb = cv2.cvtColor(filtered_image, cv2.COLOR_BGR2RGB if alpha_channel is None else cv2.COLOR_BGRA2RGBA)
 
         # 将 OpenCV 图像转换回 PIL 图像
         output_image_pil = Image.fromarray(filtered_image_rgb)
